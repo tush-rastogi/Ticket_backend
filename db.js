@@ -1,5 +1,5 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const password = encodeURIComponent(process.env.password||"Tushar@2001");
+const password = encodeURIComponent(process.env.password);
 const uri = `mongodb+srv://tush17:${password}@cluster0.fbxqa.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -71,7 +71,7 @@ async function BookEmptySeats(NumberofSeats) {
          if(NumberofSeats>EmptySeats.length)
           return [];
          
-          
+
     let map = new Map();
 
 
