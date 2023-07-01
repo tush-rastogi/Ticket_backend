@@ -1,15 +1,13 @@
 const express = require('express');
-
 const app = express();
 const cors = require('cors');
-
-
 app.use(express.json());
 app.use(cors());
-
 const PORT=process.env.PORT || 3001;
-const { run, getAllSeats, BookEmptySeats} = require('./db');
+const { run, getAllSeats, BookEmptySeats,changeStatus} = require('./db');
 
+
+//  changeStatus();
 
 app.get('/', async (req, res) => {
 
@@ -46,16 +44,25 @@ app.put('/bookSeats', async (req, res) => {
    else {
       try {
 
-         const BookedSeats = await BookEmptySeats(NumberofSeats);
+         
+          const BookedSeats = await BookEmptySeats(NumberofSeats);
 
          // console.log(BookedSeats);
+
+           if(BookedSeats.length==0)
+             {
+               res.json(`${NumberofSeats} seats are not Available`);
+             }
+
+             else{
 
          const collection = await run();
          const filter = { SeatNo: { $in: BookedSeats } };
          const update = { $set: { Status: "Not Available" } };
          const data = await collection.updateMany(filter, update)
-         console.log(data);
+         // console.log(data);
          res.json("Your Seat "+BookedSeats);
+             }
       }
       catch (error) {
          res.status(500).json("Server Error");

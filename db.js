@@ -1,5 +1,5 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const password = encodeURIComponent(process.env.password);
+const password = encodeURIComponent(process.env.password||"Tushar@2001");
 const uri = `mongodb+srv://tush17:${password}@cluster0.fbxqa.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -63,10 +63,15 @@ async function getAllSeats() {
 
  // This function books the empty seats on user request
 async function BookEmptySeats(NumberofSeats) {
-    console.log(NumberofSeats);
+    // console.log(NumberofSeats);
     const collection = await run();
     const EmptySeats = await collection.find({ Status: "Available" }).toArray();
     //  console.log(EmptySeats);
+
+         if(NumberofSeats>EmptySeats.length)
+          return [];
+         
+          
     let map = new Map();
 
 
@@ -89,49 +94,162 @@ async function BookEmptySeats(NumberofSeats) {
 
     }
 
-    const ArrayMap = Array.from(map.entries());
+ 
 
-    const sortedArrayMap = ArrayMap.sort((a, b) => b[1].length - a[1].length);
+      let row;
+      let min=10;
 
-    console.log(sortedArrayMap)
+       let flag=false
 
-    const SeatsTobeBooked = [];
+        // Logic to book Seats in a Row
+      for(let [key,value] of map){
+
+          if(NumberofSeats>value.length)
+          continue;
+
+           else{
+               
+               const x=value.length-NumberofSeats;
+
+                 if(x<min){
+                    min=x;
+                    row=key;
+                 }
+
+                 flag=true;
+           }
+
+      }
+
+         if(flag)
+       return map.get(row).slice(0,NumberofSeats);
+
+       else  // logic to book nearby Seats 
+       {
+
+        const ArrayMap = Array.from(map.entries());
+
+        ArrayMap.sort((a,b)=>a[0]-b[0]);
+         let map3=new Map();
+          for(let i=0;i<ArrayMap.length;i++)
+          {
+            
+              let min=10;
+              let max=0;
+
+              
+              min=Math.min(min,ArrayMap[i][0]);
+              max=Math.max(max,ArrayMap[i][0]);
+              
+               let map2=new Map();
+               let z=NumberofSeats;
+
+                if(z>ArrayMap[i][1].length)
+                {
+                     
+                   z-=ArrayMap[i][1].length;
+
+                    map2.set(ArrayMap[i][0],ArrayMap[i][1].length)
+
+                }
+
+                 else
+                 {
+                   
+                    map2.set(ArrayMap[i][0],z);
+                    z=0;
+                 }  
+             
+                //    console.log("First Loop ",map2)
+                 
+              for(let j=i+1;j<ArrayMap.length;j++)
+              {
+
+                   if(z==0)
+                   break;
+                
+                min=Math.min(min,ArrayMap[j][0]);
+                max=Math.max(max,ArrayMap[j][0]);
+                
+                
+                if(z>ArrayMap[j][1].length)
+                {
+                     
+                   z-=ArrayMap[j][1].length;
+
+                    map2.set(ArrayMap[j][0],ArrayMap[j][1].length)
+
+                }
+
+                 else
+                 {
+                    // array.push(z);
+                    // z=0;
+                    map2.set(ArrayMap[j][0],z);
+                    z=0;
+                 }  
+  
+
+              }
+
+                if(z>0)
+                continue;
+
+               
+                if(map3.has(max-min))
+                continue;
+
+                 else
+                 map3.set(max-min,map2);
+
+          }
+
+            // console.log(map3)
+
+               let MIN=10;
+
+             for(const [key,value] of map3)
+             {
+
+                 MIN=Math.min(min,key);
+
+             }
+
+            //   console.log(MIN)
+              let SeatsTobeBooked=[]
+
+                // console.log(map3.get(MIN))
+               for(let [x,y] of map3.get(MIN)){
+
+                    
+                      for(let i=0;i<y;i++)
+                       SeatsTobeBooked.push(map.get(x)[i]);
+                     
+               }
+
+               return SeatsTobeBooked;
+
+       }
+
+}
+
+async function changeStatus(){
 
 
-    for (const [a, b] of sortedArrayMap) {
+       const collection =await run();
 
-        if (b.length >= NumberofSeats) {
+         const filter={SeatNo:"E4"}
+          const update={$set:{Status:"Not Available"}}
 
-
-            for (let k of b.slice(0, NumberofSeats))
-                SeatsTobeBooked.push(k);
-
-            //    console.log(SeatsTobeBooked[0]);
-            return SeatsTobeBooked;
-        }
-
-        else if (NumberofSeats > b.length) {
-
-
-            for (let k of b.slice(0, NumberofSeats))
-                SeatsTobeBooked.push(k);
-
-            NumberofSeats -= b.length;
-        }
-
-
-    }
-
-
-    //  console.log(SeatsTobeBooked)
-    return SeatsTobeBooked;
-
+           collection.updateMany(filter,update);
+          
 }
 
 module.exports = {
     run,
     getAllSeats,
     BookEmptySeats,
+    changeStatus
     
     
 };
