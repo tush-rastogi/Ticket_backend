@@ -94,15 +94,15 @@ async function BookEmptySeats(NumberofSeats) {
 
     }
 
- 
+    
 
       let row;
       let min=10;
 
-       let flag=false
+       let flag=false;
 
-        // Logic to book Seats in a Row
-      for(let [key,value] of map){
+        // Logic to book Seats in a Row   
+      for(let [key,value] of map){            // key:Integer,value:Array
 
           if(NumberofSeats>value.length)
           continue;
@@ -127,14 +127,14 @@ async function BookEmptySeats(NumberofSeats) {
        else  // logic to book nearby Seats 
        {
 
-        const ArrayMap = Array.from(map.entries());
+        const ArrayMap = Array.from(map.entries());  // convert the map into array
 
-        ArrayMap.sort((a,b)=>a[0]-b[0]);
+        ArrayMap.sort((a,b)=>a[0]-b[0]);             // sort the array in ascending order of key 
          let map3=new Map();
           for(let i=0;i<ArrayMap.length;i++)
           {
             
-              let min=10;
+              let min=20;
               let max=0;
 
               
@@ -206,12 +206,12 @@ async function BookEmptySeats(NumberofSeats) {
 
             // console.log(map3)
 
-               let MIN=10;
+               let MIN=20;
 
              for(const [key,value] of map3)
              {
 
-                 MIN=Math.min(min,key);
+                 MIN=Math.min(MIN,key);
 
              }
 
@@ -238,7 +238,7 @@ async function changeStatus(){
 
        const collection =await run();
 
-         const filter={SeatNo:"E4"}
+         const filter={SeatNo:"I5"}
           const update={$set:{Status:"Not Available"}}
 
            collection.updateMany(filter,update);
